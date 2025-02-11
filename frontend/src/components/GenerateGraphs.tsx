@@ -74,16 +74,29 @@ export function GenerateGraphs() {
 
       
       const data = res.data;
-      setGraphUrls({
-        graph_1: data.graph_1,
-        graph_2: data.graph_2,
-        graph_3: data.graph_3,
-        graph_4: data.graph_4,
-      });
+      checkStatus(data.task_id)
     } catch (error) {
       console.error("Error uploading file", error);
     }
   };
+
+  
+  const checkStatus= async(taskId :string)=>{
+    const interval = setInterval(async()=>{
+      const res = await axios.post(`http://localhost:8000/task-status/${taskId}`)
+      const data = res.data
+  
+      if(data.status === "COMPLETED"){
+        setGraphUrls({
+          graph_1: data.graph_1,
+          graph_2: data.graph_2,
+          graph_3: data.graph_3,
+          graph_4: data.graph_4,
+        });
+        clearInterval(interval)
+      }
+    }, 2000)
+  }
 
   return (
     <section id="data-visualizer" className="p-6">
