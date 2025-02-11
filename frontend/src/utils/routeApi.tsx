@@ -6,5 +6,7 @@ export const ApiRoutes = {
    login:"http://localhost:8000/login",
    signup:"http://localhost:8000/signup",
    // task:"http://localhost:8000/task-status/:id"
+   gitrepo:"http://localhost:8000/github",
+   code:"http://localhost:8000/code"
 };
 

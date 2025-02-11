@@ -1,3 +1,5 @@
+import { ApiRoutes } from "@/utils/routeApi"
+import axios from "axios"
 import type React from "react"
 import { useState } from "react"
 
@@ -8,6 +10,7 @@ interface Message {
 
 export function GitCodeDocumentation  ()  {
   const [repoUrl, setRepoUrl] = useState<string>("")
+  const [pdfUrl, setPdfUrl] = useState<string>("")
   const [messages, setMessages] = useState<Message[]>([
     { type: "system", content: "Repository analysis complete. How can I help you understand the codebase?" },
     { type: "user", content: "Can you explain the main functionality in main.py?" },
@@ -23,9 +26,37 @@ export function GitCodeDocumentation  ()  {
     setRepoUrl(e.target.value)
   }
 
-  const handleLoadRepo = () => {
+  const handleLoadRepo = async () => {
     console.log("Loading repository:", repoUrl)
-    // Implement repository loading logic here
+    if(!repoUrl){
+      console.log("Please enter a valid URL")
+      return;
+    }
+    const formData = new FormData()
+    formData.append("github" , repoUrl)
+    try {
+      const res = await axios.post(ApiRoutes.gitrepo , formData , {
+        headers:{
+          "Content-Type" : "multipart/form-data"
+        }
+      })
+      const data = res.data
+      checkStatus(data.task_id)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  const checkStatus= async(taskId :string)=>{
+    const interval = setInterval(async()=>{
+      const res = await axios.post(`http://localhost:8000/task-status/${taskId}`)
+      const data = res.data
+  
+      if(data.status === "COMPLETED"){
+        setPdfUrl(data.pdf_url)
+        clearInterval(interval)
+      }
+    }, 2000)
   }
 
   const handleSendMessage = () => {
@@ -124,6 +155,19 @@ export function GitCodeDocumentation  ()  {
                   </li>
                 </ul>
               </div>
+            </div>
+
+            {/* Download PDF Button */}
+            <div className="mt-4">
+              <button 
+                disabled={!pdfUrl}
+                onClick={() => window.open(pdfUrl, "_blank")}
+                className={`w-full rounded-lg px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                  pdfUrl ? "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500" : "bg-gray-300 text-gray-600 cursor-not-allowed"
+                }`}
+              >
+                Download PDF
+              </button>
             </div>
           </div>
 

@@ -18,6 +18,13 @@ export function GenerateGraphs() {
     trendLines: false,
   });
 
+  const [graphUrls, setGraphUrls] = useState<{ [key: string]: string }>({
+    graph_1: "",
+    graph_2: "",
+    graph_3: "",
+    graph_4: "",
+  });
+
   const handleAnnotationChange = (key: keyof typeof annotations) => {
     setAnnotation((prev) => ({
       ...prev,
@@ -49,7 +56,10 @@ export function GenerateGraphs() {
     file.forEach((file) => {
       formData.append("file", file);
     });
-    formData.append("graphQuantity", graphQuantity !== null ? graphQuantity.toString() : "");
+    formData.append(
+      "graphQuantity",
+      graphQuantity !== null ? graphQuantity.toString() : ""
+    );
     formData.append("specific", JSON.stringify(graphTypes));
 
     try {
@@ -61,6 +71,15 @@ export function GenerateGraphs() {
 
       console.log(res.data);
       console.log("Upload successful", res);
+
+      
+      const data = res.data;
+      setGraphUrls({
+        graph_1: data.graph_1,
+        graph_2: data.graph_2,
+        graph_3: data.graph_3,
+        graph_4: data.graph_4,
+      });
     } catch (error) {
       console.error("Error uploading file", error);
     }
@@ -128,8 +147,6 @@ export function GenerateGraphs() {
                   Color Theme
                 </label>
                 <select
-                  // value={colorTheme}
-                  // onChange={(e) => setColorTheme(e.target.value)}
                   className="mt-1 block w-full rounded-md border border-neutral-200/40 px-4 py-2 text-sm focus:border-blue-500 focus:ring-blue-500"
                 >
                   <option>Modern</option>
@@ -150,9 +167,7 @@ export function GenerateGraphs() {
                         type="checkbox"
                         checked={value}
                         onChange={() =>
-                          handleAnnotationChange(
-                            key as keyof typeof annotations
-                          )
+                          handleAnnotationChange(key as keyof typeof annotations)
                         }
                         className="rounded border-neutral-200/40 text-blue-600 focus:ring-blue-500"
                       />
@@ -176,19 +191,32 @@ export function GenerateGraphs() {
           {/* Visualization Grid */}
           <div className="lg:col-span-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Chart placeholders */}
-              {["Line Chart", "Bar Chart", "Heatmap", "Scatter Plot"].map(
-                (chart) => (
-                  <div
-                    key={chart}
-                    className="border border-neutral-200/40 rounded-lg bg-white p-4 h-64"
-                  >
-                    <div className="h-full flex items-center justify-center text-neutral-400">
-                      <p className="text-sm">{chart}</p>
-                    </div>
-                  </div>
-                )
-              )}
+              {["graph_1", "graph_2", "graph_3", "graph_4"].map((key, idx) => (
+                <div
+                  key={key}
+                  className="border border-neutral-200/40 rounded-lg bg-white p-4 h-64 flex flex-col items-center justify-center space-y-2"
+                >
+                  {graphUrls[key] ? (
+                    <>
+                      <img
+                        src={graphUrls[key]}
+                        alt={`Graph ${idx + 1}`}
+                        className="object-contain max-h-full"
+                      />
+                      <button
+                        onClick={() => window.open(graphUrls[key], "_blank")}
+                        className="bg-blue-600 text-white rounded px-3 py-1 text-sm hover:bg-blue-700 focus:outline-none"
+                      >
+                        Download Graph {idx + 1}
+                      </button>
+                    </>
+                  ) : (
+                    <p className="text-sm text-neutral-400">{`Graph ${
+                      idx + 1
+                    } Placeholder`}</p>
+                  )}
+                </div>
+              ))}
             </div>
 
             {/* Auto-EDA Section */}

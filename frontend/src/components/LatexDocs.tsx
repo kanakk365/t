@@ -10,7 +10,8 @@ export function LatexDocs() {
   const [latexSpecifics, setLatexSpecifics] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [customFormate, setCustomFormate] = useState<File | null>(null);
-  const [latexCode , setLatexCode] = useState("")
+  const [latexCode, setLatexCode] = useState("");
+  const [pdfUrl, setPdfUrl] = useState<string>("");
 
   const handleFileUpload = (selectedFiles: File[]) => {
     if (selectedFiles.length > 0) {
@@ -49,8 +50,8 @@ export function LatexDocs() {
           "Content-Type": "multipart/form-data",
         },
       });
-      const data = res.data
-      checkStatus(data.task_id)
+      const data = res.data;
+      checkStatus(data.task_id);
       setIsProcessing(false);
     } catch (error) {
       setIsProcessing(false);
@@ -58,18 +59,18 @@ export function LatexDocs() {
     }
   };
 
-  const checkStatus= async (taskId : string)=>{
-    const interval = setInterval(async()=>{
-      const res = await axios.post(`http://localhost:8000/task-status/${taskId}`)
-      const data = res.data
+  const checkStatus = async (taskId: string) => {
+    const interval = setInterval(async () => {
+      const res = await axios.post(`http://localhost:8000/task-status/${taskId}`);
+      const data = res.data;
 
-      if(data.status === "COMPLETED"){
-        setLatexCode(data.latex_code)
-        clearInterval(interval)
+      if (data.status === "COMPLETED") {
+        setLatexCode(data.latex_code);
+        setPdfUrl(data.pdf_url);
+        clearInterval(interval);
       }
-    },2000)
-    
-  }
+    }, 2000);
+  };
 
   return (
     <section id="document-formatter" className="p-6">
@@ -190,7 +191,9 @@ export function LatexDocs() {
               </div>
             </div>
             <div className="p-4">
-              <pre className="bg-neutral-50 rounded-md p-4 text-sm font-mono text-neutral-800 overflow-y-auto">{latexCode}</pre>
+              <pre className="bg-neutral-50 rounded-md p-4 text-sm font-mono text-neutral-800 overflow-y-auto">
+                {latexCode}
+              </pre>
             </div>
           </div>
         </div>
@@ -232,6 +235,16 @@ export function LatexDocs() {
             </div>
           </div>
         )}
+
+        <div className="mt-6">
+          <button
+            className="w-full bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!pdfUrl}
+            onClick={() => window.open(pdfUrl, "_blank")}
+          >
+            Download PDF
+          </button>
+        </div>
       </div>
     </section>
   );

@@ -1,3 +1,5 @@
+import { ApiRoutes } from "@/utils/routeApi"
+import axios from "axios"
 import type React from "react"
 import { useState } from "react"
 
@@ -5,6 +7,7 @@ export function CodeDocumentation()  {
   const [language, setLanguage] = useState<string>("python")
   const [detailLevel, setDetailLevel] = useState<boolean>(false)
   const [code, setCode] = useState<string>("")
+  const [pdfUrl , setPdfUrl] = useState<string>("")
 
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setLanguage(e.target.value)
@@ -19,13 +22,40 @@ export function CodeDocumentation()  {
   }
 
   const formatCode = () => {
-    
     console.log("Formatting code...")
   }
 
-  const generateDocumentation = () => {
-    
+  const generateDocumentation = async () => {
     console.log("Generating documentation...")
+    if(!code){
+      console.log("Please paste your code")
+      return;
+    }
+    const formdata= new FormData()
+    formdata.append("code", code)
+    try {
+      const res = await axios.post(ApiRoutes.code , formdata , {
+        headers:{
+          "Content-Type" : "multipart/form-data"
+        }
+      })
+      const data = res.data
+      checkStatus(data.task_id)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  const checkStatus= async(taskId :string)=>{
+    const interval = setInterval(async()=>{
+      const res = await axios.post(`http://localhost:8000/task-status/${taskId}`)
+      const data = res.data
+  
+      if(data.status === "COMPLETED"){
+        setPdfUrl(data.pdf_url)
+        clearInterval(interval)
+      }
+    }, 2000)
   }
 
   return (
@@ -115,9 +145,7 @@ export function CodeDocumentation()  {
                 <button className="p-2 text-neutral-600 hover:text-neutral-900 rounded-md hover:bg-neutral-100">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
+                      strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
                       d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
                     ></path>
                   </svg>
@@ -136,7 +164,6 @@ export function CodeDocumentation()  {
             </div>
 
             <div className="p-4 space-y-4">
-           
               <div className="border border-neutral-200/20 rounded-lg p-4">
                 <div className="flex justify-between items-start">
                   <h4 className="text-sm font-medium text-neutral-800">main()</h4>
@@ -157,7 +184,6 @@ export function CodeDocumentation()  {
                 </div>
               </div>
 
-           
               <div className="border border-neutral-200/20 rounded-lg p-4">
                 <div className="flex justify-between items-start">
                   <h4 className="text-sm font-medium text-neutral-800">DataProcessor</h4>
@@ -170,7 +196,6 @@ export function CodeDocumentation()  {
                 <p className="mt-2 text-sm text-neutral-600">Handles data processing operations and transformations.</p>
               </div>
 
-          
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <h4 className="text-sm font-medium text-yellow-800">Documentation Suggestions</h4>
                 <ul className="mt-2 space-y-1 text-sm text-yellow-700">
@@ -178,6 +203,15 @@ export function CodeDocumentation()  {
                   <li>• Missing error handling documentation</li>
                 </ul>
               </div>
+            </div>
+            <div className="p-4">
+              <button
+                className="w-full bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!pdfUrl}
+                onClick={() => window.open(pdfUrl, "_blank")}
+              >
+                Download Documentation
+              </button>
             </div>
           </div>
         </div>
