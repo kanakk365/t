@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 function Logo() {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-xl font-semibold">Project</span>
+      <span className="text-xl font-semibold">Doc.ai</span>
     </div>
   );
 }
@@ -79,7 +79,7 @@ export default function Footer() {
           {/* Copyright */}
           <div className="mt-2 pt-8 border-t border-gray-200">
             <p className="text-gray-600 text-sm">
-              © 2025 | All rights reserved | Project
+              © 2025 | All rights reserved | Doc.ai
             </p>
           </div>
         </div>
