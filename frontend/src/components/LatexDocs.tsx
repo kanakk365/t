@@ -3,6 +3,8 @@ import { useState } from "react";
 import { FileUpload } from "@/components/ui/file-upload";
 import axios from "axios";
 import { ApiRoutes } from "@/utils/routeApi";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
 export function LatexDocs() {
   const [file, setFile] = useState<File[]>([]);
@@ -12,6 +14,8 @@ export function LatexDocs() {
   const [customFormate, setCustomFormate] = useState<File | null>(null);
   const [latexCode, setLatexCode] = useState("");
   const [pdfUrl, setPdfUrl] = useState<string>("");
+
+  const {token} = useSelector((state: RootState)=> state.auth)
 
   const handleFileUpload = (selectedFiles: File[]) => {
     if (selectedFiles.length > 0) {
@@ -47,6 +51,7 @@ export function LatexDocs() {
     try {
       const res = await axios.post(ApiRoutes.sendDoc, formData, {
         headers: {
+          Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
       });
@@ -61,7 +66,11 @@ export function LatexDocs() {
 
   const checkStatus = async (taskId: string) => {
     const interval = setInterval(async () => {
-      const res = await axios.post(`http://localhost:8000/task-status/${taskId}`);
+      const res = await axios.post(`http://localhost:8000/task-status/${taskId}`,{
+        headers:{
+          Authorization: `Bearer ${token}`,
+        }
+      });
       const data = res.data;
 
       if (data.status === "COMPLETED") {

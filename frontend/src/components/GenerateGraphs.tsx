@@ -10,31 +10,36 @@ export function GenerateGraphs() {
   const [file, setFile] = useState<File[]>([]);
   const [graphQuantity, setGraphQuantity] = useState<number | null>(null);
   const [graphTypes, setGraphTypes] = useState({
-    lineGraph: false,           
-    barChart: false,          
-    histogram: false,          
-    scatterPlot: false,         
-    pieChart: false,            
-    boxPlot: false,             
-    bubbleChart: false,        
-    heatmap: false,             
-    radarChart: false,     
-    stepChart: false,        
-    d3ScatterPlot: false,      
-    d3SurfacePlot: false,   
-    d3BarChart: false,   
+    lineGraph: false,
+    barChart: false,
+    histogram: false,
+    scatterPlot: false,
+    pieChart: false,
+    boxPlot: false,
+    bubbleChart: false,
+    heatmap: false,
+    radarChart: false,
+    stepChart: false,
+    d3ScatterPlot: false,
+    d3SurfacePlot: false,
+    d3BarChart: false,
     d3PieChart: false,
-    d3LineGraph: false, 
-    d3ContourPlot: false,       
-    d3BubbleChart: false,     
-    d3WireframePlot: false,     
-    d3Histogram: false, 
+    d3LineGraph: false,
+    d3ContourPlot: false,
+    d3BubbleChart: false,
+    d3WireframePlot: false,
+    d3Histogram: false,
   });
 
+  type ColorTheme = "Modern" | "Classic"
 
-  const [graphUrls, setGraphUrls] = useState<string[]>([])
+  const [graphUrls, setGraphUrls] = useState<string[]>([]);
+  const [colorTheme , setColorTheme]= useState<ColorTheme>("Modern")
+  const { token } = useSelector((state: RootState) => state.auth);
 
-  const {token} = useSelector((state : RootState) => state.auth)
+  const handleColorThemeChange= (event: React.ChangeEvent<HTMLSelectElement>)=>{
+    setColorTheme(event.target.value as ColorTheme)
+  }
 
   const handleGraphTypeChange = (chart: keyof typeof graphTypes) => {
     setGraphTypes((prev) => ({
@@ -64,12 +69,13 @@ export function GenerateGraphs() {
       "graphQuantity",
       graphQuantity !== null ? graphQuantity.toString() : ""
     );
-    formData.append("token" , token ?? "")
+    formData.append("theme", colorTheme)
     formData.append("specific", JSON.stringify(graphTypes));
-
+   
     try {
       const res = await axios.post(ApiRoutes.sendCsv, formData, {
         headers: {
+          Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
       });
@@ -88,17 +94,22 @@ export function GenerateGraphs() {
     const interval = setInterval(async () => {
       try {
         const res = await axios.post(
-          `http://localhost:8000/task-status/${taskId}`
+          `http://localhost:8000/task-status/${taskId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
         const data = res.data;
 
         if (data.status === "COMPLETED") {
           // Extract all values from the data object
-          const links = Object.values(data)
-            .filter((value): value is string => 
-              typeof value === 'string' && value.includes('graph')
-            );
-          
+          const links = Object.values(data).filter(
+            (value): value is string =>
+              typeof value === "string" && value.includes("graph")
+          );
+
           setGraphUrls(links);
           clearInterval(interval);
         }
@@ -173,9 +184,7 @@ export function GenerateGraphs() {
                 <label className="block text-sm font-medium text-neutral-700">
                   Color Theme
                 </label>
-                <select
-                  className="mt-1 block w-full rounded-md border border-neutral-200/40 px-4 py-2 text-sm focus:border-blue-500 focus:ring-blue-500"
-                >
+                <select value={colorTheme} onChange={handleColorThemeChange} className="mt-1 block w-full rounded-md border border-neutral-200/40 px-4 py-2 text-sm focus:border-blue-500 focus:ring-blue-500">
                   <option>Modern</option>
                   <option>Classic</option>
                 </select>

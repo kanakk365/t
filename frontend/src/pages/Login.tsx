@@ -1,9 +1,6 @@
 "use client";
-import React, { useState, useEffect } from "react";
 import { Button } from "../components/ui/button";
-import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
-import { ApiRoutes } from "@/utils/routeApi";
+import {  useNavigate } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useDispatch } from "react-redux";
 import { login } from "@/store/slice/authSlice";

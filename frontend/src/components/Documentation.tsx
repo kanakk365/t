@@ -1,13 +1,17 @@
+import { RootState } from "@/store/store"
 import { ApiRoutes } from "@/utils/routeApi"
 import axios from "axios"
 import type React from "react"
 import { useState } from "react"
+import { useSelector } from "react-redux"
 
 export function CodeDocumentation()  {
   const [language, setLanguage] = useState<string>("python")
   const [detailLevel, setDetailLevel] = useState<boolean>(false)
   const [code, setCode] = useState<string>("")
   const [pdfUrl , setPdfUrl] = useState<string>("")
+
+  const {token}= useSelector((state: RootState)=>state.auth)
 
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setLanguage(e.target.value)
@@ -36,6 +40,7 @@ export function CodeDocumentation()  {
     try {
       const res = await axios.post(ApiRoutes.code , formdata , {
         headers:{
+          Authorization: `Bearer ${token}`,
           "Content-Type" : "multipart/form-data"
         }
       })
@@ -48,7 +53,11 @@ export function CodeDocumentation()  {
 
   const checkStatus= async(taskId :string)=>{
     const interval = setInterval(async()=>{
-      const res = await axios.post(`http://localhost:8000/task-status/${taskId}`)
+      const res = await axios.post(`http://localhost:8000/task-status/${taskId}`,{
+        headers:{
+          Authorization: `Bearer ${token}`,
+        }
+      })
       const data = res.data
   
       if(data.status === "COMPLETED"){

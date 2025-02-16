@@ -1,7 +1,9 @@
+import { RootState } from "@/store/store"
 import { ApiRoutes } from "@/utils/routeApi"
 import axios from "axios"
 import type React from "react"
 import { useState } from "react"
+import { useSelector } from "react-redux"
 
 interface Message {
   type: "system" | "user" | "assistant"
@@ -22,6 +24,8 @@ export function GitCodeDocumentation  ()  {
   ])
   const [inputMessage, setInputMessage] = useState<string>("")
 
+  const {token} = useSelector((state: RootState)=>state.auth)
+
   const handleRepoUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setRepoUrl(e.target.value)
   }
@@ -37,6 +41,7 @@ export function GitCodeDocumentation  ()  {
     try {
       const res = await axios.post(ApiRoutes.gitrepo , formData , {
         headers:{
+          Authorization: `Bearer ${token}`,
           "Content-Type" : "multipart/form-data"
         }
       })
@@ -49,7 +54,11 @@ export function GitCodeDocumentation  ()  {
 
   const checkStatus= async(taskId :string)=>{
     const interval = setInterval(async()=>{
-      const res = await axios.post(`http://localhost:8000/task-status/${taskId}`)
+      const res = await axios.post(`http://localhost:8000/task-status/${taskId}`,{
+        headers:{
+          Authorization: `Bearer ${token}`,
+        }
+      })
       const data = res.data
   
       if(data.status === "COMPLETED"){
