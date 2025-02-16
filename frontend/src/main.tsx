@@ -3,22 +3,37 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
 import { BrowserRouter } from "react-router-dom";
-import { ClerkProvider } from "@clerk/clerk-react";
+import { Provider } from "react-redux";
+import { persistor, store } from "./store/store.ts";
+import { PersistGate } from "redux-persist/integration/react";
+import { Auth0Provider } from "@auth0/auth0-react";
 
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+const domain = import.meta.env.VITE_AUTH0_DOMAIN;
+const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID;
+// const audience = import.meta.env.VITE_AUTH0_AUDIENCE; // Your API identifier
 
-if (!PUBLISHABLE_KEY) {
-  throw new Error("Missing Publishable Key");
+if (!domain || !clientId ) {
+  throw new Error("Missing Auth0 configuration");
 }
 
 createRoot(document.getElementById("root")!).render(
-  <BrowserRouter>
-    {" "}
-    <StrictMode>
-      <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-        <App />
-      </ClerkProvider>
-    </StrictMode>
-    ,
-  </BrowserRouter>
+  <Provider store={store}>
+    <PersistGate loading={null} persistor={persistor}>
+      <BrowserRouter>
+        <StrictMode>
+          <Auth0Provider
+            domain={domain}
+            clientId={clientId}
+            authorizationParams={{
+              redirect_uri: window.location.origin + "/app",
+              
+            }}
+            cacheLocation="localstorage"
+          >
+            <App />
+          </Auth0Provider>
+        </StrictMode>
+      </BrowserRouter>
+    </PersistGate>
+  </Provider>
 );

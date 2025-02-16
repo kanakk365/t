@@ -1,164 +1,116 @@
 "use client";
-import React, { useState } from "react";
-import { Label } from "../components/ui/label";
-import { Input } from "../components/ui/input";
-import { cn } from "@/lib/utils";
+import React, { useState, useEffect } from "react";
 import { Button } from "../components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ApiRoutes } from "@/utils/routeApi";
-// import axios from "axios";
-// import { ApiRoutes } from "@/utils/routeApi";
-
-
-
-// interface User {
-//   id: string;
-//   name: string;
-//   email: string;
-// }
-
-// interface SignInProps {
-//   setUser: React.Dispatch<React.SetStateAction<User | null>>;
-// }
-
-
+import { useAuth0 } from "@auth0/auth0-react";
+import { useDispatch } from "react-redux";
+import { login } from "@/store/slice/authSlice";
 
 export default function Login() {
-
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const dispatch = useDispatch()
   const navigate = useNavigate();
-  console.log(loading)
+  const { 
+    loginWithPopup, 
+    user, 
+    getAccessTokenSilently,
+  } = useAuth0();
 
-  async function handleSubmit(e:  React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setLoading(true);
-    setErrors({});
-    const newErrors: { [key: string]: string } = {};
+  // Add state to track initialization
+  // const [isInitialized, setIsInitialized] = useState(false);
 
-    if (!username.trim()) newErrors.username = "Username is required.";
-    if (!password.trim()) newErrors.password = "Password is required.";
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      setLoading(false);
-      return;
-    }
-
+  const handleGoogleLogin = async () => {
     try {
-      const config = {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      };
-      const body = JSON.stringify({ username, password });
-      const res = await axios.post(ApiRoutes.login, body, config);
-
-      if (res.status === 200) {
-        // const { token, user } = res.data;
-        console.log("done")
-        // localStorage.setItem("token", token);
-        // localStorage.setItem("user", JSON.stringify(user));
-        navigate("/app");
-      } else {
-        throw new Error(res.data.message || "Invalid email or password.");
-      }
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        setErrors({
-          form: error.response?.data?.message || "Something went wrong.",
-        });
-      } else {
-        setErrors({
-          form: "Something went wrong.",
-        });
-      }
-    } finally {
-      setLoading(false);
+      await loginWithPopup({
+        authorizationParams: {
+          connection: "google-oauth2" 
+        }
+      });
+      
+      
+        const token = await getAccessTokenSilently()
+        console.log(user)
+        console.log("Token:", token);
+        dispatch(login({ user:{ email : user?.email ?? "", name: user?.name ?? ""}, token: token ?? "" }))
+        navigate('/app')
+    } catch (error) {
+      console.error("Login failed", error);
     }
   };
 
-  return (
-      <div className="h-[100vh] flex justify-center items-center bg-[#f3f4f6]  ">
-        <div className="max-w-md w-96 mx-auto rounded-none md:rounded-2xl p-4 md:p-8 bg-[#ffffff]  h-fit">
-          <h1 className="text-2xl font-semibold tracking-tight ">
-            Welcome Back
-          </h1>
-          <form className="my-8" onSubmit={handleSubmit} >
-            <LabelInputContainer className="mb-4">
-              <Label className="font-normal" htmlFor="username">
-                Username
-              </Label>
-              <Input
-                className="bg-[#ffffff]"
-                id="username"
-                placeholder="iota_me"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-              {errors.username && (
-                <p className="text-red-500 text-sm">{errors.username}</p>
-              )}
-            </LabelInputContainer>
-            <LabelInputContainer className="mb-4">
-              <Label className="font-normal" htmlFor="password">
-                Password
-              </Label>
-              <Input
-                className="bg-[#ffffff] border-2-black"
-                id="password"
-                placeholder="••••••••"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              {errors.password && (
-                <p className="text-red-500 text-sm">{errors.password}</p>
-              )}
-            </LabelInputContainer>
-            {errors.form && (
-              <p className="text-red-500 text-sm mb-4">{errors.form}</p>
-            )}
-         <button
-          className=" p-2 bg-[black] relative group/btn block  w-full text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
-          type="submit"
-        >
-          Login &rarr;
-          <BottomGradient/>
-          <div className="  bg-gradient-to-r from-transparent via-neutral-300 dark:via-neutral-700 to-transparent my-8 h-[1px] w-full" />
-        </button>
-          </form>
-          <div className="text-center mt-4 ">
-            <Link to="/signup">
-              <Button className="text-gray-400 hover:text-black" variant={"link"}>
-                Don’t have an account? Sign Up
-              </Button>
-            </Link>
+  // useEffect(() => {
+  //   const initializeAuth = async () => {
+  //     // Only proceed if we're authenticated and haven't initialized yet
+  //     if (isAuthenticated && user && !isInitialized) {
+  //       try {
+  //         console.log("Starting authentication process...");
+  //         console.log("User authenticated:", user);
+          
+  //         const token = await getAccessTokenSilently();
+  //         console.log("Access Token received");
+
+  //         const userData = {
+  //           email: user.email,
+  //           name: user.name,
+  //           picture: user.picture,
+  //           auth0Id: user.sub
+  //         };
+          
+  //         console.log("Sending user data to backend:", userData);
+
+  //         const response = await axios.post(
+  //           ApiRoutes.registerUser,
+  //           userData,
+  //           {
+  //             headers: {
+  //               Authorization: `Bearer ${token}`
+  //             }
+  //           }
+  //         );
+
+  //         console.log("Backend response received:", response.data);
+  //         setIsInitialized(true);
+  //         navigate('/dashboard');
+  //       } catch (error) {
+  //         console.error('Error during initialization:', error);
+  //         setIsInitialized(false);
+  //       }
+  //     } else if (!isAuthenticated && !isLoading) {
+  //       console.log("Not authenticated, ready for login");
+  //     }
+  //   };
+
+  //   initializeAuth();
+  // }, [isAuthenticated, user, getAccessTokenSilently, navigate, isLoading, isInitialized]);
+
+
+  // if (isLoading || (isAuthenticated && !isInitialized)) {
+  //   return (
+  //     <div className="h-[100vh] flex justify-center items-center">
+  //       <p>Loading...</p>
+  //     </div>
+  //   );
+  // }
+
+  // Only show login if not authenticated
+  
+    return (
+      <div className="h-[100vh] flex justify-center items-center bg-[#f3f4f6]">
+        <div className="max-w-md w-96 mx-auto rounded-none md:rounded-2xl p-4 md:p-8 bg-[#ffffff] h-fit">
+          <h1 className="text-2xl font-semibold tracking-tight">Welcome Back</h1>
+          <div className="mt-6">
+            <Button
+              onClick={handleGoogleLogin}
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+            >
+              Login with Google
+            </Button>
           </div>
         </div>
       </div>
     );
-};
+  }
 
-const BottomGradient = () => {
-  return (
-    <>
-      <span className="group-hover/btn:opacity-100 block transition duration-500 opacity-0 absolute h-px w-full -bottom-px inset-x-0 bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
-      <span className="group-hover/btn:opacity-100 blur-sm block transition duration-500 opacity-0 absolute h-px w-1/2 mx-auto -bottom-px inset-x-10 bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
-    </>
-  );
-};
 
-const LabelInputContainer: React.FC<{
-  children: React.ReactNode;
-  className?: string;
-}> = ({ children, className }) => {
-  return (
-    <div className={cn("flex flex-col space-y-2 w-full", className)}>
-      {children}
-    </div>
-  );
-};
+

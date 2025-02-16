@@ -3,34 +3,38 @@ import { useState } from "react";
 import { FileUpload } from "@/components/ui/file-upload";
 import axios from "axios";
 import { ApiRoutes } from "@/utils/routeApi";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 
 export function GenerateGraphs() {
   const [file, setFile] = useState<File[]>([]);
   const [graphQuantity, setGraphQuantity] = useState<number | null>(null);
   const [graphTypes, setGraphTypes] = useState({
-    lineChart: false,
-    barChart: false,
-    heatmap: false,
-    scatterPlot: false,
-  });
-  const [annotations, setAnnotation] = useState({
-    dataLabels: false,
-    trendLines: false,
+    lineGraph: false,           
+    barChart: false,          
+    histogram: false,          
+    scatterPlot: false,         
+    pieChart: false,            
+    boxPlot: false,             
+    bubbleChart: false,        
+    heatmap: false,             
+    radarChart: false,     
+    stepChart: false,        
+    d3ScatterPlot: false,      
+    d3SurfacePlot: false,   
+    d3BarChart: false,   
+    d3PieChart: false,
+    d3LineGraph: false, 
+    d3ContourPlot: false,       
+    d3BubbleChart: false,     
+    d3WireframePlot: false,     
+    d3Histogram: false, 
   });
 
-  const [graphUrls, setGraphUrls] = useState<{ [key: string]: string }>({
-    graph_1: "",
-    graph_2: "",
-    graph_3: "",
-    graph_4: "",
-  });
 
-  const handleAnnotationChange = (key: keyof typeof annotations) => {
-    setAnnotation((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
-  };
+  const [graphUrls, setGraphUrls] = useState<string[]>([])
+
+  const {token} = useSelector((state : RootState) => state.auth)
 
   const handleGraphTypeChange = (chart: keyof typeof graphTypes) => {
     setGraphTypes((prev) => ({
@@ -60,6 +64,7 @@ export function GenerateGraphs() {
       "graphQuantity",
       graphQuantity !== null ? graphQuantity.toString() : ""
     );
+    formData.append("token" , token ?? "")
     formData.append("specific", JSON.stringify(graphTypes));
 
     try {
@@ -72,31 +77,40 @@ export function GenerateGraphs() {
       console.log(res.data);
       console.log("Upload successful", res);
 
-      
       const data = res.data;
-      checkStatus(data.task_id)
+      checkStatus(data.task_id);
     } catch (error) {
       console.error("Error uploading file", error);
     }
   };
 
-  
-  const checkStatus= async(taskId :string)=>{
-    const interval = setInterval(async()=>{
-      const res = await axios.post(`http://localhost:8000/task-status/${taskId}`)
-      const data = res.data
-  
-      if(data.status === "COMPLETED"){
-        setGraphUrls({
-          graph_1: data.graph_1,
-          graph_2: data.graph_2,
-          graph_3: data.graph_3,
-          graph_4: data.graph_4,
-        });
-        clearInterval(interval)
+  const checkStatus = async (taskId: string) => {
+    const interval = setInterval(async () => {
+      try {
+        const res = await axios.post(
+          `http://localhost:8000/task-status/${taskId}`
+        );
+        const data = res.data;
+
+        if (data.status === "COMPLETED") {
+          // Extract all values from the data object
+          const links = Object.values(data)
+            .filter((value): value is string => 
+              typeof value === 'string' && value.includes('graph')
+            );
+          
+          setGraphUrls(links);
+          clearInterval(interval);
+        }
+      } catch (error) {
+        console.error("Error checking status:", error);
+        clearInterval(interval);
       }
-    }, 2000)
-  }
+    }, 2000);
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(interval);
+  };
 
   return (
     <section id="data-visualizer" className="p-6">
@@ -164,32 +178,7 @@ export function GenerateGraphs() {
                 >
                   <option>Modern</option>
                   <option>Classic</option>
-                  <option>Vibrant</option>
-                  <option>Pastel</option>
                 </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-neutral-700">
-                  Annotations
-                </label>
-                <div className="mt-2 space-y-2">
-                  {Object.entries(annotations).map(([key, value]) => (
-                    <label key={key} className="inline-flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={value}
-                        onChange={() =>
-                          handleAnnotationChange(key as keyof typeof annotations)
-                        }
-                        className="rounded border-neutral-200/40 text-blue-600 focus:ring-blue-500"
-                      />
-                      <span className="ml-2 text-sm text-neutral-700">
-                        {key === "dataLabels" ? "Data Labels" : "Trend Lines"}
-                      </span>
-                    </label>
-                  ))}
-                </div>
               </div>
 
               <button
@@ -203,36 +192,39 @@ export function GenerateGraphs() {
 
           {/* Visualization Grid */}
           <div className="lg:col-span-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {["graph_1", "graph_2", "graph_3", "graph_4"].map((key, idx) => (
-                <div
-                  key={key}
-                  className="border border-neutral-200/40 rounded-lg bg-white p-4 h-64 flex flex-col items-center justify-center space-y-2"
-                >
-                  {graphUrls[key] ? (
-                    <>
-                      <img
-                        src={graphUrls[key]}
-                        alt={`Graph ${idx + 1}`}
-                        className="object-contain max-h-full"
-                      />
-                      <button
-                        onClick={() => window.open(graphUrls[key], "_blank")}
-                        className="bg-blue-600 text-white rounded px-3 py-1 text-sm hover:bg-blue-700 focus:outline-none"
-                      >
-                        Download Graph {idx + 1}
-                      </button>
-                    </>
-                  ) : (
-                    <p className="text-sm text-neutral-400">{`Graph ${
-                      idx + 1
-                    } Placeholder`}</p>
-                  )}
-                </div>
-              ))}
+            {/* Added a fixed height container with vertical scroll */}
+            <div className="h-[800px] overflow-y-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+                {graphUrls.map((url, idx) => (
+                  <div
+                    key={idx}
+                    className="border border-neutral-200/40 rounded-lg bg-white p-4 h-64 flex flex-col items-center justify-center space-y-2"
+                  >
+                    {url ? (
+                      <>
+                        <img
+                          src={url}
+                          alt={`Graph ${idx + 1}`}
+                          className="object-contain max-h-full"
+                        />
+                        <button
+                          onClick={() => window.open(url, "_blank")}
+                          className="bg-blue-600 text-white rounded px-3 py-1 text-sm hover:bg-blue-700 focus:outline-none"
+                        >
+                          Download Graph {idx + 1}
+                        </button>
+                      </>
+                    ) : (
+                      <p className="text-sm text-neutral-400">{`Graph ${
+                        idx + 1
+                      } Placeholder`}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* Auto-EDA Section */}
+            {/* Auto-EDA Section remains below the scrollable area */}
             <div className="mt-6 border border-neutral-200/40 rounded-lg bg-white p-6">
               <h3 className="text-lg font-medium text-neutral-800 mb-4">
                 Automated Analysis
