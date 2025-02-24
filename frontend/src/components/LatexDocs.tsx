@@ -37,7 +37,7 @@ export function LatexDocs() {
 
       const data = res.data 
 
-      setLatexCode(data)
+      checkStatus(data.task_id);
       setIsProcessing(false);
     } catch (error) {
       console.log(error)
@@ -229,7 +229,7 @@ export function LatexDocs() {
                 </button>
               </div>
             </div>
-            <div className="p-4 overflow-y-auto h-[94%] flex justify-between flex-col">
+            <div className="p-4 overflow-y-auto h-[92%] flex justify-between flex-col">
               <pre className="bg-neutral-50 rounded-md p-4 text-sm font-mono text-neutral-800 overflow-y-auto h-full">
                 
               </pre>
