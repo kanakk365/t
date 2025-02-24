@@ -75,7 +75,7 @@ export function GenerateGraphs() {
     try {
       const res = await axios.post(ApiRoutes.sendCsv, formData, {
         headers: {
-          Authorization: `Bearer ${token}`,
+           
           "Content-Type": "multipart/form-data",
         },
       });

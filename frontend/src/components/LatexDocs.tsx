@@ -5,6 +5,8 @@ import axios from "axios";
 import { ApiRoutes } from "@/utils/routeApi";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
+import { AIInputWithLoading } from "./ui/ai-input-with-loading";
+
 
 export function LatexDocs() {
   const [file, setFile] = useState<File[]>([]);
@@ -14,8 +16,34 @@ export function LatexDocs() {
   const [customFormate, setCustomFormate] = useState<File | null>(null);
   const [latexCode, setLatexCode] = useState("");
   const [pdfUrl, setPdfUrl] = useState<string>("");
+  // const [message , setMessage] = useState<{role: "user" | "ai"; text:string}[]>([])
 
   const {token} = useSelector((state: RootState)=> state.auth)
+
+  const handleChatSubmit = async ( inputValue: string )=>{
+    setIsProcessing(true);
+    const formData = new FormData()
+
+    formData.append("latex", latexCode)
+    formData.append("chatInput", inputValue)
+
+    try {
+      const res = await axios.post("dontknow", formData , {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        }
+      })
+
+      const data = res.data 
+
+      setLatexCode(data)
+      setIsProcessing(false);
+    } catch (error) {
+      console.log(error)
+      setIsProcessing(false);
+    }
+  }
 
   const handleFileUpload = (selectedFiles: File[]) => {
     if (selectedFiles.length > 0) {
@@ -80,6 +108,8 @@ export function LatexDocs() {
       }
     }, 2000);
   };
+
+
 
   return (
     <section id="document-formatter" className="p-6">
@@ -161,12 +191,12 @@ export function LatexDocs() {
             </div>
           </div>
 
-          <div className="border border-neutral-200/40 rounded-lg bg-white">
+          <div className="border border-neutral-200/40 rounded-lg bg-white h-">
             <div className="border-b border-neutral-200/40 px-4 py-3 flex justify-between items-center">
               <h3 className="text-sm font-medium text-neutral-700">
                 Generated LaTeX Code
               </h3>
-              <div className="flex space-x-2">
+              <div className="flex space-x-2 ">
                 <button className="p-2 text-neutral-600 hover:text-neutral-900 rounded-md hover:bg-neutral-100">
                   <svg
                     className="w-5 h-5"
@@ -199,11 +229,14 @@ export function LatexDocs() {
                 </button>
               </div>
             </div>
-            <div className="p-4">
-              <pre className="bg-neutral-50 rounded-md p-4 text-sm font-mono text-neutral-800 overflow-y-auto">
-                {latexCode}
+            <div className="p-4 overflow-y-auto h-[94%] flex justify-between flex-col">
+              <pre className="bg-neutral-50 rounded-md p-4 text-sm font-mono text-neutral-800 overflow-y-auto h-full">
+                
               </pre>
+              <AIInputWithLoading onSubmit={handleChatSubmit} />
+              
             </div>
+            
           </div>
         </div>
 
