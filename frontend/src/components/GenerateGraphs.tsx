@@ -77,6 +77,7 @@ export function GenerateGraphs() {
         headers: {
            
           "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`
         },
       });
 
@@ -94,7 +95,7 @@ export function GenerateGraphs() {
     const interval = setInterval(async () => {
       try {
         const res = await axios.post(
-          `http://localhost:8000/task-status/${taskId}`,
+          `http://localhost:8000/task-status4/${taskId}/`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
