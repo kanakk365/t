@@ -28,7 +28,7 @@ export function LatexDocs() {
     formData.append("chatInput", inputValue)
 
     try {
-      const res = await axios.post("dontknow", formData , {
+      const res = await axios.post("http://127.0.0.1:8000/update-doc/", formData , {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
@@ -94,7 +94,7 @@ export function LatexDocs() {
 
   const checkStatus = async (taskId: string) => {
     const interval = setInterval(async () => {
-      const res = await axios.post(`http://localhost:8000/task-status/${taskId}`,{
+      const res = await axios.post(`http://localhost:8000/task-status/${taskId}/`,{
         headers:{
           Authorization: `Bearer ${token}`,
         }
@@ -163,7 +163,7 @@ export function LatexDocs() {
                   </optgroup>
                   <optgroup label="Section Presets">
                     <option>Academic Paper</option>
-                    <option>Technical Report</option>
+                    <option>Resume</option>
                     <option>Business Letter</option>
                     <option>Custom</option>
                   </optgroup>
