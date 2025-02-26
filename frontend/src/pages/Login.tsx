@@ -1,40 +1,140 @@
 "use client";
+// import { Button } from "../components/ui/button";
+// import {  useNavigate } from "react-router-dom";
+// import { useAuth0 } from "@auth0/auth0-react";
+// import { useDispatch } from "react-redux";
+// import { login } from "@/store/slice/authSlice";
+
+// export default function Login() {
+//   const dispatch = useDispatch()
+//   const navigate = useNavigate();
+//   const { 
+//     loginWithPopup, 
+//     user, 
+//     getAccessTokenSilently,
+//   } = useAuth0();
+
+//   // Add state to track initialization
+//   // const [isInitialized, setIsInitialized] = useState(false);
+
+//   const handleGoogleLogin = async () => {
+//     try {
+//       await loginWithPopup({
+//         authorizationParams: {
+//           connection: "google-oauth2" 
+//         }
+//       });
+      
+      
+//         const token = await getAccessTokenSilently()
+//         console.log(user)
+//         console.log("Token:", token);
+//         dispatch(login({ user:{ email : user?.email ?? "", name: user?.name ?? ""}, token: token ?? "" }))
+//         navigate('/app')
+//     } catch (error) {
+//       console.error("Login failed", error);
+//     }
+//   };
+
 import { Button } from "../components/ui/button";
-import {  useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useDispatch } from "react-redux";
 import { login } from "@/store/slice/authSlice";
 
 export default function Login() {
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { 
-    loginWithPopup, 
-    user, 
-    getAccessTokenSilently,
-  } = useAuth0();
-
-  // Add state to track initialization
-  // const [isInitialized, setIsInitialized] = useState(false);
+  const { loginWithPopup, user, getAccessTokenSilently } = useAuth0();
 
   const handleGoogleLogin = async () => {
     try {
       await loginWithPopup({
         authorizationParams: {
-          connection: "google-oauth2" 
-        }
+          connection: "google-oauth2",
+        },
       });
-      
-      
-        const token = await getAccessTokenSilently()
-        console.log(user)
-        console.log("Token:", token);
-        dispatch(login({ user:{ email : user?.email ?? "", name: user?.name ?? ""}, token: token ?? "" }))
-        navigate('/app')
+
+      const token = await getAccessTokenSilently();
+      console.log(user);
+      console.log("Token:", token);
+
+      // Dispatch login to Redux store
+      dispatch(
+        login({
+          user: { email: user?.email ?? "", name: user?.name ?? "" },
+          token: token ?? "",
+        })
+      );
+
+      // Send token to Django backend
+      await fetch("http://127.0.0.1:8000/api/google-login/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Sending token in Authorization header
+        },
+        body: JSON.stringify({
+          email: user?.email,
+          name: user?.name,
+          token: token,
+        }),
+      });
+
+      navigate("/app");
     } catch (error) {
       console.error("Login failed", error);
     }
   };
+
+ 
+
+// import { Button } from "../components/ui/button";
+// import { useNavigate } from "react-router-dom";
+// import { useAuth0 } from "@auth0/auth0-react";
+// import { useDispatch } from "react-redux";
+// import { login } from "@/store/slice/authSlice";
+
+// export default function Login() {
+//   const dispatch = useDispatch();
+//   const navigate = useNavigate();
+//   const { loginWithPopup, user, getIdTokenClaims } = useAuth0();
+
+//   const handleGoogleLogin = async () => {
+//     try {
+//       await loginWithPopup({
+//         authorizationParams: {
+//           connection: "google-oauth2",
+//         },
+//       });
+
+//       const idToken = (await getIdTokenClaims())?.__raw; // Get Google ID token
+//       if (!idToken) throw new Error("Failed to get ID token");
+
+//       console.log("User Info:", user);
+//       console.log("ID Token:", idToken);
+
+//       // Send ID token to backend
+//       const response = await fetch("http://localhost:8000/api/google-login/", {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({ access_token: idToken }),
+//       });
+
+//       const data = await response.json();
+//       if (!response.ok) throw new Error(data.error || "Login failed");
+
+//       // Store user details in Redux
+//       dispatch(login({ user: data.user, token: data.token }));
+
+//       navigate("/app");
+//     } catch (error) {
+//       console.error("Login failed", error);
+//     }
+//   };
+
+  // return <Button onClick={handleGoogleLogin}>Login with Google</Button>;
+// }
 
   // useEffect(() => {
   //   const initializeAuth = async () => {
