@@ -231,7 +231,7 @@ export function LatexDocs() {
             </div>
             <div className="p-4 overflow-y-auto h-[92%] flex justify-between flex-col">
               <pre className="bg-neutral-50 rounded-md p-4 text-sm font-mono text-neutral-800 overflow-y-auto h-full">
-                
+                {latexCode}
               </pre>
               <AIInputWithLoading onSubmit={handleChatSubmit} />
               
