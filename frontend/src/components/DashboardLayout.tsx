@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ChartColumnDecreasing, CodeXml, File } from "lucide-react";
+import { ChartColumnDecreasing, CodeXml, File, FileSearch } from "lucide-react";
 
 export const DashboardLayout = () => {
   const [open, setOpen] = useState(false);
@@ -72,24 +72,25 @@ export const Logo = () => {
       to="/" // Updated to prop
       className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20"
     >
-      <div className="h-5 w-6 bg-black dark:bg-white rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0" />
+      <FileSearch/>
       <motion.span
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         className="font-medium text-black dark:text-white whitespace-pre"
       >
+        
         Doc.ai
       </motion.span>
     </Link>
   );
 };
-export const LogoIcon = () => {
-  return (
-    <Link
-      to="/" // Updated to prop
-      className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20"
-    >
-      <div className="h-5 w-6 bg-black dark:bg-white rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0" />
-    </Link>
-  );
-};
+// export const LogoIcon = () => {
+//   return (
+//     <Link
+//       to="/" // Updated to prop
+      
+//     >
+//       <FileSearch/>
+//     </Link>
+//   );
+// };

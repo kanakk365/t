@@ -8,6 +8,7 @@ import { GenerateGraphs } from "./components/GenerateGraphs";
 import { LatexDocs } from "./components/LatexDocs";            
 import Documentation from "./components/Documentation";
 import GitCodeDocumentation from "./components/GitCodeDocumentation";
+import RequireAuth from "./RequireAuth";
 
 function App() {
   return (
@@ -19,12 +20,12 @@ function App() {
         {/* <Route path="/signup" element={<Signup />} /> */}
 
        
-        <Route path="/app" element={<DashboardLayout />}>
+        <Route path="/app" element={<RequireAuth><DashboardLayout /></RequireAuth>}>
           <Route index element={<Navigate to="graphs" replace />} />
-          <Route path="graphs" element={<GenerateGraphs />} />
-          <Route path="docs" element={<LatexDocs />} />
-          <Route path="codedocs" element={<Documentation />} />
-          <Route path="gitcodeassist" element={<GitCodeDocumentation />} />
+          <Route path="graphs" element={<RequireAuth><GenerateGraphs /></RequireAuth>} />
+          <Route path="docs" element={<RequireAuth><LatexDocs /></RequireAuth>} />
+          <Route path="codedocs" element={<RequireAuth><Documentation /></RequireAuth>} />
+          <Route path="gitcodeassist" element={<RequireAuth><GitCodeDocumentation /></RequireAuth>} />
         </Route>
       </Routes>
     </div>
